@@ -1,0 +1,6 @@
+!io.swagger.models.Swagger
+info: 
+   contact: {}
+   license: {}
+   title: test-title
+   version: test-version
