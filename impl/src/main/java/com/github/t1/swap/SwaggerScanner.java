@@ -1,5 +1,6 @@
 package com.github.t1.swap;
 
+import static javax.lang.model.element.ElementKind.*;
 import static javax.lang.model.element.Modifier.*;
 import static javax.tools.Diagnostic.Kind.*;
 
@@ -7,14 +8,22 @@ import java.util.*;
 
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.*;
+import javax.lang.model.util.ElementScanner7;
+import javax.ws.rs.*;
+import javax.ws.rs.Path;
+
+import org.slf4j.*;
 
 import io.swagger.annotations.*;
 import io.swagger.annotations.Contact;
 import io.swagger.annotations.License;
+import io.swagger.models.*;
 import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+import io.swagger.models.parameters.*;
 
 public class SwaggerScanner {
+    private static final Logger log = LoggerFactory.getLogger(SwaggerScanner.class);
+
     private final Messager messager;
     private final Swagger swagger = new Swagger();
 
@@ -24,6 +33,10 @@ public class SwaggerScanner {
 
     public void error(CharSequence message, Element element) {
         messager.printMessage(ERROR, message, element);
+    }
+
+    public void warning(CharSequence message, Element element) {
+        messager.printMessage(WARNING, message, element);
     }
 
     public void note(CharSequence message, Element element) {
@@ -51,13 +64,13 @@ public class SwaggerScanner {
 
     private SwaggerScanner addSwaggerDefinition(TypeElement swaggerDefinitionElement) {
         SwaggerDefinition swaggerDefinition = swaggerDefinitionElement.getAnnotation(SwaggerDefinition.class);
-        note("processed", swaggerDefinitionElement);
 
         buildInfo(swaggerDefinition.info());
 
         swagger.setHost(nonEmpty(swaggerDefinition.host()));
         swagger.setBasePath(nonEmpty(swaggerDefinition.basePath()));
 
+        note("processed", swaggerDefinitionElement);
         return this;
     }
 
@@ -125,18 +138,89 @@ public class SwaggerScanner {
         return (string.isEmpty()) ? null : string;
     }
 
-    public SwaggerScanner apis(Set<? extends Element> apis) {
-        for (Element api : apis)
-            api(api);
+    public SwaggerScanner addPathElements(Set<? extends Element> pathElements) {
+        log.debug("addPathElements {}", pathElements);
+        for (Element pathElement : pathElements)
+            if (pathElement instanceof TypeElement)
+                addPathType((TypeElement) pathElement);
         return this;
     }
 
-    private SwaggerScanner api(Element apiElement) {
-        Api api = apiElement.getAnnotation(Api.class);
-        note("processed", apiElement);
+    private SwaggerScanner addPathType(TypeElement typeElement) {
+        // Api api = pathElement.getAnnotation(Api.class);
+        final String typePath = typeElement.getAnnotation(javax.ws.rs.Path.class).value();
+        log.debug("scan path {} in {}", typePath, typeElement);
 
-        // swagger.path("/", new Path());
+        typeElement.accept(new ElementScanner7<Void, Void>() {
+            @Override
+            public Void visitExecutable(ExecutableElement method, Void p) {
+                if (method.getKind() == METHOD) {
+                    log.debug("scan method {} of {}", method, method.getEnclosingElement());
+                    String methodPath = methodPath(method);
+                    io.swagger.models.Path pathModel = pathModel(methodPath);
+                    Operation get = scanGET(method);
+                    pathModel.get(get);
+                }
+                return super.visitExecutable(method, p);
+            }
 
+            private String methodPath(ExecutableElement method) {
+                Path methodPath = method.getAnnotation(javax.ws.rs.Path.class);
+                return typePath + ((methodPath == null) ? "" : methodPath.value());
+            }
+
+            private io.swagger.models.Path pathModel(String methodPath) {
+                io.swagger.models.Path pathModel = swagger.getPath(methodPath);
+                if (pathModel == null) {
+                    pathModel = new io.swagger.models.Path();
+                    swagger.path(methodPath, pathModel);
+                }
+                return pathModel;
+            }
+
+            private Operation scanGET(ExecutableElement method) {
+                Operation get = new Operation() //
+                        .operationId(method.getSimpleName().toString()) //
+                        .deprecated(method.getAnnotation(Deprecated.class) != null);
+                scanApiOperation(method, get);
+                scanParams(method, get);
+                return get;
+            }
+
+            private void scanApiOperation(ExecutableElement method, Operation get) {
+                ApiOperation apiOperation = method.getAnnotation(ApiOperation.class);
+                if (apiOperation != null) {
+                    get.setSummary(apiOperation.value());
+                    get.setDescription(nonEmpty(apiOperation.notes()));
+                    for (String tag : apiOperation.tags())
+                        if (!tag.isEmpty())
+                            get.addTag(tag);
+                }
+            }
+
+            private void scanParams(ExecutableElement method, Operation get) {
+                for (VariableElement param : method.getParameters()) {
+                    HeaderParam headerParam = param.getAnnotation(HeaderParam.class);
+                    MatrixParam matrixParam = param.getAnnotation(MatrixParam.class);
+                    QueryParam queryParam = param.getAnnotation(QueryParam.class);
+                    PathParam pathParam = param.getAnnotation(PathParam.class);
+                    if (headerParam != null) {
+                        get.addParameter(new HeaderParameter().name(headerParam.value()));
+                    } else if (matrixParam != null) {
+                        warning("matrix params are not supported by Swagger; treating like a body param", param);
+                        get.addParameter(new BodyParameter());
+                    } else if (queryParam != null) {
+                        get.addParameter(new QueryParameter().name(queryParam.value()));
+                    } else if (pathParam != null) {
+                        get.addParameter(new PathParameter().name(pathParam.value()));
+                    } else {
+                        get.addParameter(new BodyParameter());
+                    }
+                }
+            }
+        }, null);
+
+        note("processed", typeElement);
         return this;
     }
 

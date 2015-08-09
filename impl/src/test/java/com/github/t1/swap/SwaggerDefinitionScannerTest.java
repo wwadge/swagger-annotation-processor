@@ -1,8 +1,13 @@
 package com.github.t1.swap;
 
+import static javax.lang.model.element.ElementKind.*;
+import static javax.lang.model.element.Modifier.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Map;
+
+import javax.lang.model.element.TypeElement;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,11 +18,20 @@ import io.swagger.models.Swagger;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
+    protected void scanSwaggerDefinition(Class<?> container) {
+        TypeElement swaggerDefinitionElement = mock(TypeElement.class);
+        when(swaggerDefinitionElement.getKind()).thenReturn(CLASS);
+        when(swaggerDefinitionElement.getModifiers()).thenReturn(asSet(PUBLIC));
+        when(swaggerDefinitionElement.getAnnotation(SwaggerDefinition.class))
+                .thenReturn(container.getAnnotation(SwaggerDefinition.class));
+        swaggerScanner.addSwaggerDefinitions(asSet(swaggerDefinitionElement));
+    }
+
     @Test
     public void shouldParseSwaggerDescriptionInfoTitleAndVersion() {
         @SwaggerDefinition(info = @Info(title = "ti", version = "v") )
         class Dummy {}
-        givenSwaggerDefinition(Dummy.class);
+        scanSwaggerDefinition(Dummy.class);
 
         io.swagger.models.Info info = swaggerScanner.getResult().getInfo();
 
@@ -30,7 +44,7 @@ public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
     public void shouldParseSwaggerDescriptionInfoDescriptionAndTermsOfService() {
         @SwaggerDefinition(info = @Info(title = "ti", version = "v", description = "des", termsOfService = "terms") )
         class Dummy {}
-        givenSwaggerDefinition(Dummy.class);
+        scanSwaggerDefinition(Dummy.class);
 
         io.swagger.models.Info info = swaggerScanner.getResult().getInfo();
 
@@ -43,7 +57,7 @@ public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
         @SwaggerDefinition(
                 info = @Info(title = "ti", version = "v", contact = @Contact(name = "n", email = "e", url = "u") ) )
         class Dummy {}
-        givenSwaggerDefinition(Dummy.class);
+        scanSwaggerDefinition(Dummy.class);
 
         io.swagger.models.Contact contact = swaggerScanner.getResult().getInfo().getContact();
 
@@ -56,7 +70,7 @@ public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
     public void shouldParseSwaggerDescriptionLicense() {
         @SwaggerDefinition(info = @Info(title = "ti", version = "v", license = @License(name = "n", url = "u") ) )
         class Dummy {}
-        givenSwaggerDefinition(Dummy.class);
+        scanSwaggerDefinition(Dummy.class);
 
         io.swagger.models.License license = swaggerScanner.getResult().getInfo().getLicense();
 
@@ -79,7 +93,7 @@ public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
         }) )
         class Dummy {}
 
-        givenSwaggerDefinition(Dummy.class);
+        scanSwaggerDefinition(Dummy.class);
 
         Map<String, Object> extensions = swaggerScanner.getResult().getInfo().getVendorExtensions();
         System.out.println(extensions);
@@ -101,7 +115,7 @@ public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
     public void shouldParseSwaggerDescription() {
         @SwaggerDefinition(host = "h", basePath = "b")
         class Dummy {}
-        givenSwaggerDefinition(Dummy.class);
+        scanSwaggerDefinition(Dummy.class);
 
         Swagger swagger = swaggerScanner.getResult();
 
@@ -114,7 +128,6 @@ public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
     // TODO List<String> consumes;
     // TODO List<String> produces;
     // TODO List<SecurityRequirement> securityRequirements;
-    // TODO Map<String, Path> paths;
     // TODO Map<String, SecuritySchemeDefinition> securityDefinitions;
     // TODO Map<String, Model> definitions;
     // TODO Map<String, Parameter> parameters;

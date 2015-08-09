@@ -2,21 +2,21 @@ package com.github.t1.swap;
 
 import java.io.*;
 
-import com.esotericsoftware.yamlbeans.YamlWriter;
-
 import io.swagger.models.Swagger;
+import io.swagger.util.Yaml;
 
 public class SwaggerWriter {
-    private final Writer writer;
+    private final PrintWriter writer;
 
     public SwaggerWriter(Writer writer) {
-        this.writer = writer;
+        this.writer = new PrintWriter(writer);
     }
 
-    public void write(Swagger swagger) throws IOException {
-        YamlWriter yaml = new YamlWriter(writer);
-        // yaml.getConfig().setClassTag("swagger", Swagger.class);
-        yaml.write(swagger);
-        yaml.close();
+    public void write(Swagger swagger) {
+        try {
+            Yaml.mapper().writeValue(writer, swagger);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

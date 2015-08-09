@@ -9,12 +9,13 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.FileObject;
+import javax.ws.rs.Path;
 
 import org.slf4j.*;
 
 import com.github.t1.exap.*;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.SwaggerDefinition;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedAnnotationClasses(SwaggerDefinition.class)
@@ -30,7 +31,7 @@ public class SwaggerAnnotationProcessor extends ExtendedAbstractProcessor {
         if (swagger == null)
             swagger = new SwaggerScanner(messager());
         swagger.addSwaggerDefinitions(roundEnv.getElementsAnnotatedWith(SwaggerDefinition.class));
-        swagger.apis(roundEnv.getElementsAnnotatedWith(Api.class));
+        swagger.addPathElements(roundEnv.getElementsAnnotatedWith(Path.class));
         if (roundEnv.processingOver() && swagger.isWorthWriting())
             writeSwagger();
         return false;

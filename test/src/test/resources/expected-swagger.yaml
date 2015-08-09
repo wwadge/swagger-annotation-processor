@@ -1,6 +1,26 @@
-!io.swagger.models.Swagger
-info: 
-   contact: {}
-   license: {}
-   title: test-title
-   version: test-version
+---
+swagger: "2.0"
+info:
+  version: "test-version"
+  title: "test-title"
+  contact: {}
+  license: {}
+paths:
+  /p:
+    get:
+      summary: "get-op"
+      operationId: "getEnum"
+      parameters:
+      - name: "path-param"
+        in: "path"
+        required: true
+      - name: "header-param"
+        in: "header"
+        required: false
+      - name: "query-param"
+        in: "query"
+        required: false
+      - in: "body"
+        required: false
+      - in: "body"
+        required: false
