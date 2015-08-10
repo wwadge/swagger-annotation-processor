@@ -1,15 +1,11 @@
 package com.github.t1.swap;
 
-import static javax.lang.model.element.ElementKind.*;
-import static javax.lang.model.element.Modifier.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static javax.ws.rs.core.MediaType.*;
 
-import java.util.Map;
+import java.util.*;
 
-import javax.lang.model.element.TypeElement;
-
-import org.junit.Test;
+import org.assertj.core.api.JUnitSoftAssertions;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -18,68 +14,88 @@ import io.swagger.models.Swagger;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
-    protected void scanSwaggerDefinition(Class<?> container) {
-        TypeElement swaggerDefinitionElement = mock(TypeElement.class);
-        when(swaggerDefinitionElement.getKind()).thenReturn(CLASS);
-        when(swaggerDefinitionElement.getModifiers()).thenReturn(asSet(PUBLIC));
-        when(swaggerDefinitionElement.getAnnotation(SwaggerDefinition.class))
-                .thenReturn(container.getAnnotation(SwaggerDefinition.class));
-        swaggerScanner.addSwaggerDefinitions(asSet(swaggerDefinitionElement));
+    protected Swagger scanSwaggerDefinition(Class<?> container) {
+        swaggerScanner.addSwaggerDefinition(new ReflectionTypeElement(container));
+        return swaggerScanner.getResult();
+    }
+
+    @Rule
+    public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
+
+    @Test
+    public void shouldScanHostAndBasepath() {
+        @SwaggerDefinition(host = "h", basePath = "b")
+        class Dummy {}
+
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
+
+        softly.assertThat(swagger.getHost()).isEqualTo("h");
+        softly.assertThat(swagger.getBasePath()).isEqualTo("b");
     }
 
     @Test
-    public void shouldParseSwaggerDescriptionInfoTitleAndVersion() {
+    public void shouldScanInfoTitleAndVersion() {
         @SwaggerDefinition(info = @Info(title = "ti", version = "v") )
         class Dummy {}
-        scanSwaggerDefinition(Dummy.class);
 
-        io.swagger.models.Info info = swaggerScanner.getResult().getInfo();
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
 
-        assertNull("description", info.getDescription());
-        assertEquals("ti", info.getTitle());
-        assertEquals("v", info.getVersion());
+        io.swagger.models.Info info = swagger.getInfo();
+        softly.assertThat(info.getTitle()).isEqualTo("ti");
+        softly.assertThat(info.getVersion()).isEqualTo("v");
     }
 
     @Test
-    public void shouldParseSwaggerDescriptionInfoDescriptionAndTermsOfService() {
+    public void shouldScanInfoDescriptionAndTermsOfService() {
         @SwaggerDefinition(info = @Info(title = "ti", version = "v", description = "des", termsOfService = "terms") )
         class Dummy {}
-        scanSwaggerDefinition(Dummy.class);
 
-        io.swagger.models.Info info = swaggerScanner.getResult().getInfo();
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
 
-        assertEquals("des", info.getDescription());
-        assertEquals("terms", info.getTermsOfService());
+        io.swagger.models.Info info = swagger.getInfo();
+        softly.assertThat(info.getDescription()).isEqualTo("des");
+        softly.assertThat(info.getTermsOfService()).isEqualTo("terms");
     }
 
     @Test
-    public void shouldParseSwaggerDescriptionContact() {
+    public void shouldScanNullContactAndLicense() {
+        @SwaggerDefinition(info = @Info(title = "ti", version = "v") )
+        class Dummy {}
+
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
+
+        softly.assertThat(swagger.getInfo().getContact()).isNull();
+        softly.assertThat(swagger.getInfo().getLicense()).isNull();
+    }
+
+    @Test
+    public void shouldScanContact() {
         @SwaggerDefinition(
                 info = @Info(title = "ti", version = "v", contact = @Contact(name = "n", email = "e", url = "u") ) )
         class Dummy {}
-        scanSwaggerDefinition(Dummy.class);
 
-        io.swagger.models.Contact contact = swaggerScanner.getResult().getInfo().getContact();
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
 
-        assertEquals("n", contact.getName());
-        assertEquals("e", contact.getEmail());
-        assertEquals("u", contact.getUrl());
+        io.swagger.models.Contact contact = swagger.getInfo().getContact();
+        softly.assertThat(contact.getName()).isEqualTo("n");
+        softly.assertThat(contact.getEmail()).isEqualTo("e");
+        softly.assertThat(contact.getUrl()).isEqualTo("u");
     }
 
     @Test
-    public void shouldParseSwaggerDescriptionLicense() {
+    public void shouldScanLicense() {
         @SwaggerDefinition(info = @Info(title = "ti", version = "v", license = @License(name = "n", url = "u") ) )
         class Dummy {}
-        scanSwaggerDefinition(Dummy.class);
 
-        io.swagger.models.License license = swaggerScanner.getResult().getInfo().getLicense();
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
 
-        assertEquals("n", license.getName());
-        assertEquals("u", license.getUrl());
+        io.swagger.models.License license = swagger.getInfo().getLicense();
+        softly.assertThat(license.getName()).isEqualTo("n");
+        softly.assertThat(license.getUrl()).isEqualTo("u");
     }
 
     @Test
-    public void shouldParseSwaggerDescriptionExtensions() {
+    public void shouldScanExtensions() {
         @SwaggerDefinition(info = @Info(title = "ti", version = "v",
                 extensions = { //
                         @Extension(name = "n0",
@@ -93,40 +109,82 @@ public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
         }) )
         class Dummy {}
 
-        scanSwaggerDefinition(Dummy.class);
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
 
-        Map<String, Object> extensions = swaggerScanner.getResult().getInfo().getVendorExtensions();
+        Map<String, Object> extensions = swagger.getInfo().getVendorExtensions();
         System.out.println(extensions);
 
-        assertEquals(2, extensions.size());
+        softly.assertThat(extensions.size()).isEqualTo(2);
         @SuppressWarnings("unchecked")
         Map<String, Object> n0 = (Map<String, Object>) extensions.get("x-n0");
-        assertEquals(2, n0.size());
-        assertEquals("v01", n0.get("x-n01"));
-        assertEquals("v02", n0.get("x-n02"));
+        softly.assertThat(n0.size()).isEqualTo(2);
+        softly.assertThat(n0.get("x-n01")).isEqualTo("v01");
+        softly.assertThat(n0.get("x-n02")).isEqualTo("v02");
         @SuppressWarnings("unchecked")
         Map<String, Object> n1 = (Map<String, Object>) extensions.get("x-n1");
-        assertEquals(2, n1.size());
-        assertEquals("v11", n1.get("x-n11"));
-        assertEquals("x-v12", n1.get("x-n12"));
+        softly.assertThat(n1.size()).isEqualTo(2);
+        softly.assertThat(n1.get("x-n11")).isEqualTo("v11");
+        softly.assertThat(n1.get("x-n12")).isEqualTo("x-v12");
     }
 
     @Test
-    public void shouldParseSwaggerDescription() {
-        @SwaggerDefinition(host = "h", basePath = "b")
+    public void shouldScanTags() {
+        @SwaggerDefinition(tags = { //
+                @Tag(name = "a", description = "aaa"), //
+                @Tag(name = "b", description = "bbb"), //
+                @Tag(name = "c"), //
+        } //
+        )
         class Dummy {}
-        scanSwaggerDefinition(Dummy.class);
 
-        Swagger swagger = swaggerScanner.getResult();
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
 
-        assertEquals("h", swagger.getHost());
-        assertEquals("b", swagger.getBasePath());
+        List<io.swagger.models.Tag> tags = swagger.getTags();
+        softly.assertThat(tags).extracting("name").containsOnly("a", "b", "c");
+        softly.assertThat(tags).extracting("description").containsOnly("aaa", "bbb", "");
     }
 
-    // TODO List<Tag> tags;
+    @Test
+    public void shouldNotScanEmptyConsumes() {
+        @SwaggerDefinition
+        class Dummy {}
+
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
+
+        softly.assertThat(swagger.getConsumes()).isNull();
+    }
+
+    @Test
+    public void shouldScanConsumes() {
+        @SwaggerDefinition(consumes = { APPLICATION_JSON, APPLICATION_XML })
+        class Dummy {}
+
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
+
+        softly.assertThat(swagger.getConsumes()).containsOnly(APPLICATION_JSON, APPLICATION_XML);
+    }
+
+    @Test
+    public void shouldNotScanEmptyProduces() {
+        @SwaggerDefinition
+        class Dummy {}
+
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
+
+        softly.assertThat(swagger.getProduces()).isNull();
+    }
+
+    @Test
+    public void shouldScanProduces() {
+        @SwaggerDefinition(produces = { APPLICATION_JSON, APPLICATION_XML })
+        class Dummy {}
+
+        Swagger swagger = scanSwaggerDefinition(Dummy.class);
+
+        softly.assertThat(swagger.getProduces()).containsOnly(APPLICATION_JSON, APPLICATION_XML);
+    }
+
     // TODO List<Scheme> schemes;
-    // TODO List<String> consumes;
-    // TODO List<String> produces;
     // TODO List<SecurityRequirement> securityRequirements;
     // TODO Map<String, SecuritySchemeDefinition> securityDefinitions;
     // TODO Map<String, Model> definitions;

@@ -1,6 +1,7 @@
 package com.github.t1.swap;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 
 import io.swagger.annotations.*;
 
@@ -11,6 +12,7 @@ public class SwaggerApiClass {
     @ApiOperation("get-op")
     @SuppressWarnings("unused")
     public SwaggerEnumModel getEnum( //
+            @Context UriInfo uriInfo, //
             @PathParam("path-param") String pathParam, //
             @HeaderParam("header-param") String headerParam, //
             @QueryParam("query-param") String queryParam, //

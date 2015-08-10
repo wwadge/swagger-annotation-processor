@@ -10,11 +10,11 @@ import java.util.*;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 
-public class MockParameterVariableElement implements VariableElement {
+public class ReflectionParameterVariableElement implements VariableElement {
     private final Method method;
     private final int paramIndex;
 
-    public MockParameterVariableElement(Method method, int paramIndex) {
+    public ReflectionParameterVariableElement(Method method, int paramIndex) {
         this.method = method;
         this.paramIndex = paramIndex;
     }
@@ -55,7 +55,7 @@ public class MockParameterVariableElement implements VariableElement {
 
     @Override
     public Name getSimpleName() {
-        return new MockName("arg" + paramIndex);
+        return new ReflectionName("arg" + paramIndex);
     }
 
     @Override

@@ -2,99 +2,30 @@ package com.github.t1.swap;
 
 import static java.util.Arrays.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.lang.model.element.*;
-import javax.lang.model.util.ElementScanner7;
+import javax.lang.model.element.TypeElement;
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import io.swagger.models.*;
 import io.swagger.models.parameters.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ApiScannerTest extends AbstractSwaggerScannerTest {
     private Swagger scanApiClass(Class<?> container) {
-        TypeElement typeElement = mockType(container);
-
-        List<ExecutableElement> methods = new java.util.ArrayList<>();
-        for (Method method : container.getDeclaredMethods())
-            methods.add(mockMethod(method));
-
-        mockVisiting(typeElement, methods);
-
+        TypeElement typeElement = new ReflectionTypeElement(container);
         swaggerScanner.addPathElements(asSet(typeElement));
         return swaggerScanner.getResult();
     }
 
-    private TypeElement mockType(Class<?> container) {
-        TypeElement typeElement = mock(TypeElement.class, "container");
-        when(typeElement.getAnnotation(Path.class)).thenReturn(container.getAnnotation(Path.class));
-        mockName(typeElement, container.getSimpleName());
-        return typeElement;
-    }
-
-    private ExecutableElement mockMethod(Method method) {
-        ExecutableElement executableElement = mock(ExecutableElement.class);
-
-        mockName(executableElement, method.getName());
-        when(executableElement.getKind()).thenReturn(ElementKind.METHOD);
-        when(executableElement.getAnnotation(Deprecated.class)).thenReturn(method.getAnnotation(Deprecated.class));
-
-        if (method.isAnnotationPresent(Path.class)) {
-            when(executableElement.getAnnotation(Path.class)).thenReturn(method.getAnnotation(Path.class));
-        }
-        if (method.isAnnotationPresent(ApiOperation.class)) {
-            ApiOperation apiOperation = method.getAnnotation(ApiOperation.class);
-            when(executableElement.getAnnotation(ApiOperation.class)).thenReturn(apiOperation);
-        }
-        mockParams(method, executableElement);
-
-        return executableElement;
-    }
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private void mockParams(Method method, ExecutableElement executableElement) {
-        List<VariableElement> parameters = new ArrayList<>();
-        for (int i = 0; i < method.getParameterTypes().length; i++)
-            parameters.add(new MockParameterVariableElement(method, i));
-        when(executableElement.getParameters()).thenReturn((List) parameters);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void mockVisiting(TypeElement typeElement, final List<ExecutableElement> methods) {
-        when(typeElement.accept(any(ElementScanner7.class), isNull())).thenAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                ElementScanner7<?, ?> visitor = invocation.getArgumentAt(0, ElementScanner7.class);
-                for (ExecutableElement method : methods) {
-                    visitor.visitExecutable(method, null);
-                }
-                return null;
-            }
-        });
-    }
-
-    private void mockName(Element executableElement, String string) {
-        Name name = mock(Name.class);
-        when(executableElement.getSimpleName()).thenReturn(name);
-        when(name.toString()).thenReturn(string);
-    }
-
     @Test
-    public void shouldParseFullGET() {
+    public void shouldScanFullGET() {
         @Path("/dummy")
         class Dummy {
             @GET
@@ -107,10 +38,19 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
             @Deprecated
             @SuppressWarnings("unused")
             public String getMethod( //
-                    String bodyParam, //
-                    @PathParam("path-param") String pathParam, //
-                    @HeaderParam("header-param") String headerParam, //
-                    @QueryParam("query-param") String queryParam //
+                    @Context UriBuilder uriBuilder, //
+                    @ApiParam(name = "b-param", value = "b-desc", defaultValue = "b-def",
+                            allowableValues = "b-allowable", required = true, access = "b-access", allowMultiple = true,
+                            hidden = false) String bodyParam, //
+                    @ApiParam(name = "p-param", value = "p-desc", defaultValue = "p-def",
+                            allowableValues = "p-allowable", required = true, access = "p-access", allowMultiple = true,
+                            hidden = false) @PathParam("path-param") String pathParam, //
+                    @ApiParam(name = "h-param", value = "h-desc", defaultValue = "h-def",
+                            allowableValues = "h-allowable", required = true, access = "h-access", allowMultiple = true,
+                            hidden = false) @HeaderParam("header-param") String headerParam, //
+                    @ApiParam(name = "q-param", value = "q-desc", defaultValue = "q-def",
+                            allowableValues = "q-allowable", required = true, access = "q-access", allowMultiple = true,
+                            hidden = false) @QueryParam("query-param") String queryParam //
             ) {
                 return null;
             }
@@ -131,14 +71,30 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
         assertEquals("get-notes", get.getDescription());
         assertEquals(asList("t0", "t1"), get.getTags());
         assertEquals("getMethod", get.getOperationId());
-        assertEquals(asList( //
-                // TODO CookieParameter
-                // TODO FormParameter
-                new BodyParameter(), //
-                new PathParameter().name("path-param"), //
-                new HeaderParameter().name("header-param"), //
-                new QueryParameter().name("query-param") //
-        ), get.getParameters());
+        assertEquals(new BodyParameter() //
+                .name("b-param") //
+                .description("b-desc") //
+        // TODO .defaultValue("b-def")
+        // TODO .allowableValues("b-allowable")
+        // TODO .required(true) //
+        // TODO .access("b-access") //
+        // TODO .allowMultiple(true) //
+        // TODO .hidden(false) //
+        , get.getParameters().get(0));
+        assertEquals(new PathParameter() //
+                .name("p-param") //
+                .description("p-desc") //
+                , get.getParameters().get(1));
+        assertEquals(new HeaderParameter() //
+                .name("h-param") //
+                .description("h-desc") //
+                , get.getParameters().get(2));
+        assertEquals(new QueryParameter() //
+                .name("q-param") //
+                .description("q-desc") //
+                , get.getParameters().get(3));
+        // TODO CookieParameter
+        // TODO FormParameter
         // TODO Map<String, Response> responses;
         // TODO List<Scheme> schemes;
         // TODO List<String> consumes;
@@ -149,7 +105,37 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
     }
 
     @Test
-    public void shouldParseNullDescription() {
+    public void shouldScanJaxRsParamNames() {
+        @Path("/dummy")
+        class Dummy {
+            @GET
+            @Path("/{path-param}")
+            @SuppressWarnings("unused")
+            public String getMethod( //
+                    String bodyParam, //
+                    @PathParam("path-param") String pathParam, //
+                    @HeaderParam("header-param") String headerParam, //
+                    @QueryParam("query-param") String queryParam //
+            ) {
+                return null;
+            }
+        }
+
+        io.swagger.models.Path path = scanApiClass(Dummy.class).getPath("/dummy/{path-param}");
+
+        assertNotNull("path not found", path);
+        Operation get = path.getGet();
+        assertEquals("getMethod", get.getOperationId());
+        assertEquals(new BodyParameter().name("body"), get.getParameters().get(0));
+        assertEquals(new PathParameter().name("path-param"), get.getParameters().get(1));
+        assertEquals(new HeaderParameter().name("header-param"), get.getParameters().get(2));
+        assertEquals(new QueryParameter().name("query-param"), get.getParameters().get(3));
+        // TODO CookieParameter
+        // TODO FormParameter
+    }
+
+    @Test
+    public void shouldScanNullDescription() {
         @Path("/dummy")
         class Dummy {
             @GET
