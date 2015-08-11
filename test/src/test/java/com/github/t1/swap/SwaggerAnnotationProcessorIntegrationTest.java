@@ -1,6 +1,6 @@
 package com.github.t1.swap;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.StrictAssertions.*;
 
 import java.io.File;
 

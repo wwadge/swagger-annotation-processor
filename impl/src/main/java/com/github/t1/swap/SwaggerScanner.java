@@ -168,13 +168,14 @@ public class SwaggerScanner {
         log.debug("addPathElements {}", pathElements);
         for (Element pathElement : pathElements)
             if (pathElement instanceof TypeElement)
-                addPathType((TypeElement) pathElement);
+                addPathTypeElement((TypeElement) pathElement);
         return this;
     }
 
-    private SwaggerScanner addPathType(TypeElement typeElement) {
-        // Api api = pathElement.getAnnotation(Api.class);
-        final String typePath = typeElement.getAnnotation(javax.ws.rs.Path.class).value();
+    private SwaggerScanner addPathTypeElement(TypeElement typeElement) {
+        Api api = typeElement.getAnnotation(Api.class);
+        final List<String> defaultTags = tags(api);
+        final String typePath = prefixedPath(typeElement.getAnnotation(javax.ws.rs.Path.class).value());
         log.debug("scan path {} in {}", typePath, typeElement);
 
         typeElement.accept(new ElementScanner7<Void, Void>() {
@@ -193,7 +194,9 @@ public class SwaggerScanner {
 
             private String methodPath(ExecutableElement method) {
                 Path methodPath = method.getAnnotation(javax.ws.rs.Path.class);
-                return typePath + ((methodPath == null) ? "" : methodPath.value());
+                if (methodPath == null)
+                    return typePath;
+                return typePath + prefixedPath(methodPath.value());
             }
 
             private io.swagger.models.Path pathModel(String methodPath) {
@@ -223,6 +226,8 @@ public class SwaggerScanner {
                         if (!tag.isEmpty())
                             operation.addTag(tag);
                 }
+                if (operation.getTags() == null)
+                    operation.setTags(defaultTags);
             }
 
             private void scanParams(ExecutableElement method, Operation operation) {
@@ -265,6 +270,24 @@ public class SwaggerScanner {
 
         note("processed", typeElement);
         return this;
+    }
+
+    private List<String> tags(Api api) {
+        if (api == null)
+            return null;
+        List<String> list = new ArrayList<>();
+        for (String tag : api.tags())
+            if (!tag.isEmpty())
+                list.add(tag);
+        if (list.isEmpty() && !api.value().isEmpty())
+            list.add(api.value());
+        return (list.isEmpty()) ? null : list;
+    }
+
+    private String prefixedPath(String value) {
+        if (!value.startsWith("/"))
+            value = "/" + value;
+        return value;
     }
 
     public Swagger getResult() {
