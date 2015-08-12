@@ -11,13 +11,13 @@ import org.mockito.Mock;
 
 public abstract class AbstractSwaggerScannerTest {
     @Mock
-    private Messager messager;
+    protected Messager messager;
 
     protected SwaggerScanner swaggerScanner;
 
     @Before
     public void setupSwaggerScanner() {
-        this.swaggerScanner = new SwaggerScanner(messager);
+        this.swaggerScanner = new SwaggerScanner();
     }
 
     @SafeVarargs

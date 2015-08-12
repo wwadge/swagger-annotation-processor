@@ -1,13 +1,11 @@
 package com.github.t1.swap;
 
+import static javax.lang.model.SourceVersion.*;
 import static javax.tools.StandardLocation.*;
 
 import java.io.*;
-import java.util.Set;
 
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.TypeElement;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.tools.FileObject;
 import javax.ws.rs.Path;
 
@@ -17,22 +15,21 @@ import com.github.t1.exap.*;
 
 import io.swagger.annotations.SwaggerDefinition;
 
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
-@SupportedAnnotationClasses(SwaggerDefinition.class)
+@SupportedSourceVersion(RELEASE_8)
+@SupportedAnnotationClasses({ SwaggerDefinition.class, Path.class })
 public class SwaggerAnnotationProcessor extends ExtendedAbstractProcessor {
     private static final Logger log = LoggerFactory.getLogger(SwaggerAnnotationProcessor.class);
 
-    private SwaggerScanner swagger;
+    private final SwaggerScanner swagger = new SwaggerScanner();
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv, int roundNumber)
-            throws IOException {
-        log.debug("process {}", roundEnv.getRootElements());
-        if (swagger == null)
-            swagger = new SwaggerScanner(messager());
-        swagger.addSwaggerDefinitions(roundEnv.getElementsAnnotatedWith(SwaggerDefinition.class));
-        swagger.addPathElements(roundEnv.getElementsAnnotatedWith(Path.class));
-        if (roundEnv.processingOver() && swagger.isWorthWriting())
+    public boolean process(Round round) throws IOException {
+        log.debug("process {}", round);
+
+        swagger.addSwaggerDefinitions(round.typesAnnotatedWith(SwaggerDefinition.class));
+        swagger.addJaxRsTypes(round.typesAnnotatedWith(Path.class));
+
+        if (round.isLast() && swagger.isWorthWriting())
             writeSwagger();
         return false;
     }

@@ -9,13 +9,15 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.github.t1.exap.reflection.ReflectionType;
+
 import io.swagger.annotations.*;
 import io.swagger.models.Swagger;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
     protected Swagger scanSwaggerDefinition(Class<?> container) {
-        swaggerScanner.addSwaggerDefinition(new ReflectionTypeElement(container));
+        swaggerScanner.addSwaggerDefinition(new ReflectionType(messager, container));
         return swaggerScanner.getResult();
     }
 
