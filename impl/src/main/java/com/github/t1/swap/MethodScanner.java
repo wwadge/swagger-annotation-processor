@@ -31,16 +31,6 @@ public class MethodScanner {
         this.defaultTags = defaultTags;
     }
 
-    public void set(io.swagger.models.Path pathModel, String type, Operation operation) {
-        try {
-            java.lang.reflect.Method setter =
-                    io.swagger.models.Path.class.getMethod(type.toLowerCase(), Operation.class);
-            setter.invoke(pathModel, operation);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("no method found for " + type, e);
-        }
-    }
-
     public void scan() {
         String type = httpMethodType();
         if (type == null)
@@ -51,12 +41,9 @@ public class MethodScanner {
     }
 
     public String httpMethodType() {
-        for (AnnotationType annotation : method.getAnnotationTypes()) {
-            HttpMethod httpMethod = annotation.getAnnotation(HttpMethod.class);
-            if (httpMethod != null) {
-                return httpMethod.value();
-            }
-        }
+        for (AnnotationType annotation : method.getAnnotationTypes())
+            if (annotation.getAnnotation(HttpMethod.class) != null)
+                return annotation.getAnnotation(HttpMethod.class).value();
         return null;
     }
 
@@ -82,6 +69,7 @@ public class MethodScanner {
                 .operationId(method.getSimpleName()) //
                 .deprecated(method.getAnnotation(Deprecated.class) != null);
         scanApiOperation(operation);
+        scanResponses(operation);
         scanParams(operation);
         return operation;
     }
@@ -97,6 +85,16 @@ public class MethodScanner {
         }
         if (operation.getTags() == null)
             operation.setTags(defaultTags);
+    }
+
+    private void scanResponses(Operation operation) {
+        ApiResponses responses = method.getAnnotation(ApiResponses.class);
+        if (responses == null)
+            return;
+        for (ApiResponse response : responses.value())
+            operation.addResponse(Integer.toString(response.code()), new Response() //
+                    .description(response.message()) //
+            );
     }
 
     private void scanParams(Operation operation) {
@@ -135,5 +133,14 @@ public class MethodScanner {
         if (!apiParam.value().isEmpty())
             model.setDescription(apiParam.value());
     }
-}
 
+    private void set(io.swagger.models.Path pathModel, String type, Operation operation) {
+        try {
+            java.lang.reflect.Method setter =
+                    io.swagger.models.Path.class.getMethod(type.toLowerCase(), Operation.class);
+            setter.invoke(pathModel, operation);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("no method found for " + type, e);
+        }
+    }
+}

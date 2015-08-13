@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.StrictAssertions.assertThat;
 
 import java.lang.annotation.*;
+import java.time.LocalDate;
 
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
@@ -21,6 +22,7 @@ import com.github.t1.exap.reflection.*;
 
 import io.swagger.annotations.*;
 import io.swagger.models.*;
+import io.swagger.models.Response;
 import io.swagger.models.parameters.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -390,5 +392,31 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
         assertThat(patchOperation).as("PATCH not found").isNotNull();
 
         softly.assertThat(patchOperation).isNotNull();
+    }
+
+    @Test
+    public void shouldScanResponse() {
+        @Path("/foo")
+        class Dummy {
+            @GET
+            @ApiResponses(@ApiResponse(code = 400, message = "error", reference = "ref",
+                    responseHeaders = { @ResponseHeader(name = "X-Status", description = "error detail",
+                            response = LocalDate.class, responseContainer = "List") },
+                    response = Integer.class, responseContainer = "List"))
+            public void bar() {}
+        }
+
+        Swagger swagger = scanJaxRsType(Dummy.class);
+
+        Operation get = getGetOperation(swagger.getPath("/foo"));
+        softly.assertThat(get.getResponses()).hasSize(1);
+        softly.assertThat(get.getResponses().get("400")).isEqualTo( //
+                new Response() //
+                        .description("error") //
+        // TODO ref
+        // TODO .header("X-Status", "error detail") //
+        // TODO response
+        // TODO responseContainer
+        );
     }
 }
