@@ -9,7 +9,7 @@ import javax.ws.rs.core.*;
 @Api
 @Path("/p")
 public class SwaggerApiClass {
-    /** get-op */
+    /** get-op. description */
     @GET
     @Path("some/{path-param}/path")
     @SuppressWarnings("unused")

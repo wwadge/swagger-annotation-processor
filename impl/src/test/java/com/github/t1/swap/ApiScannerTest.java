@@ -28,8 +28,7 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
 
     private Swagger scanJaxRsType(Class<?> container) {
         Type type = ReflectionProcessingEnvironment.ENV.type(container);
-        swaggerScanner.addJaxRsType(type);
-        return swaggerScanner.getResult();
+        return swaggerScanner.addJaxRsType(type).getResult();
     }
 
     private Operation getGetOperation(io.swagger.models.Path path) {

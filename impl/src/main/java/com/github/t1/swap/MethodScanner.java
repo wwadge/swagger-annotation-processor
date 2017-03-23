@@ -73,10 +73,17 @@ public class MethodScanner {
     }
 
     private void scanApiOperation(Operation operation) {
+        String javaDoc = method.docComment();
+        if (javaDoc != null) {
+            operation.setSummary(summary(javaDoc));
+            operation.setDescription(javaDoc.trim());
+        }
         ApiOperation apiOperation = method.getAnnotation(ApiOperation.class);
         if (apiOperation != null) {
             operation.setSummary(apiOperation.value());
-            operation.setDescription(nonEmpty(apiOperation.notes()));
+            String description = nonEmpty(apiOperation.notes());
+            if (description != null)
+                operation.setDescription(description);
             for (String tag : apiOperation.tags())
                 if (!tag.isEmpty())
                     operation.addTag(tag);

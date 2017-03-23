@@ -4,9 +4,10 @@ info:
   version: "test-version"
   title: "test-title"
 paths:
-  /p:
+  /p/some/{path-param}/path:
     get:
       summary: "get-op"
+      description: "get-op. description"
       operationId: "getEnum"
       parameters:
       - name: "path-param"

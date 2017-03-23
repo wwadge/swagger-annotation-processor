@@ -18,10 +18,11 @@ public class SwaggerScanner {
 
     private final Swagger swagger = new Swagger();
 
-    public void addSwaggerDefinitions(List<Type> elements) {
+    public SwaggerScanner addSwaggerDefinitions(List<Type> elements) {
         Type swaggerDefinition = firstSwaggerDefinition(elements);
         if (swaggerDefinition != null)
             addSwaggerDefinition(swaggerDefinition);
+        return this;
     }
 
     private Type firstSwaggerDefinition(List<Type> types) {
@@ -141,7 +142,6 @@ public class SwaggerScanner {
     }
 
     public SwaggerScanner addJaxRsType(Type type) {
-        log.error("found javadoc in {}: {}", type.getSimpleName(), type.docComment());
         Api api = type.getAnnotation(Api.class);
         final List<String> defaultTags = tags(api);
         final String typePath = prefixedPath(type.getAnnotation(javax.ws.rs.Path.class).value());
