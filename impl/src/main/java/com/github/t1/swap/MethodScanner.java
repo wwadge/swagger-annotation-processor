@@ -1,20 +1,12 @@
 package com.github.t1.swap;
 
-import static com.github.t1.swap.Helpers.*;
-
-import java.util.List;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-
-import org.slf4j.*;
-
-import com.github.t1.exap.reflection.*;
 import com.github.t1.exap.reflection.Parameter;
 
-import io.swagger.annotations.*;
-import io.swagger.models.*;
-import io.swagger.models.parameters.*;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Context;
+import java.util.List;
+
+import static com.github.t1.swap.Helpers.*;
 
 public class MethodScanner {
     private static final Logger log = LoggerFactory.getLogger(MethodScanner.class);
@@ -41,7 +33,7 @@ public class MethodScanner {
     }
 
     public String httpMethodType() {
-        for (AnnotationType annotation : method.getAnnotationTypes())
+        for (AnnotationWrapper annotation : method.getAnnotationWrappers())
             if (annotation.getAnnotation(HttpMethod.class) != null)
                 return annotation.getAnnotation(HttpMethod.class).value();
         return null;
@@ -66,7 +58,7 @@ public class MethodScanner {
 
     private Operation operation() {
         Operation operation = new Operation() //
-                .operationId(method.getSimpleName()) //
+                .operationId(method.getName()) //
                 .deprecated(method.getAnnotation(Deprecated.class) != null);
         scanApiOperation(operation);
         scanResponses(operation);

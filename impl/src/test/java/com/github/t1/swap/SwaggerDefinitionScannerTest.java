@@ -1,23 +1,21 @@
 package com.github.t1.swap;
 
-import static javax.ws.rs.core.MediaType.*;
-
-import java.util.*;
-
+import com.github.t1.exap.reflection.ReflectionProcessingEnvironment;
+import io.swagger.annotations.*;
+import io.swagger.models.Swagger;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.github.t1.exap.reflection.ReflectionType;
+import java.util.*;
 
-import io.swagger.annotations.*;
-import io.swagger.models.Swagger;
+import static javax.ws.rs.core.MediaType.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
     protected Swagger scanSwaggerDefinition(Class<?> container) {
-        swaggerScanner.addSwaggerDefinition(new ReflectionType(messager, container));
+        swaggerScanner.addSwaggerDefinition(ReflectionProcessingEnvironment.ENV.type(container));
         return swaggerScanner.getResult();
     }
 

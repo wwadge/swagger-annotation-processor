@@ -1,6 +1,5 @@
-.classpath
-.project
-.settings
-target
-
-test/.factorypath
+impl/target/
+test/target/
+.idea/
+swagger-annotation-processor.iml
+test/test.iml

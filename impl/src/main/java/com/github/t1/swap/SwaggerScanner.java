@@ -1,19 +1,17 @@
 package com.github.t1.swap;
 
-import static com.github.t1.swap.Helpers.*;
-
-import java.util.*;
-
-import org.slf4j.*;
-
 import com.github.t1.exap.reflection.*;
-
 import io.swagger.annotations.*;
 import io.swagger.annotations.Contact;
 import io.swagger.annotations.License;
 import io.swagger.annotations.Tag;
 import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+import io.swagger.models.*;
+import org.slf4j.*;
+
+import java.util.*;
+
+import static com.github.t1.swap.Helpers.*;
 
 public class SwaggerScanner {
     private static final Logger log = LoggerFactory.getLogger(SwaggerScanner.class);
@@ -118,8 +116,8 @@ public class SwaggerScanner {
         for (Tag tag : tags)
             if (!tag.name().isEmpty())
                 swagger.tag(new io.swagger.models.Tag() //
-                        .name(tag.name()) //
-                        .description(tag.description()) //
+                                                        .name(tag.name()) //
+                                                        .description(tag.description()) //
                 );
     }
 
@@ -142,13 +140,13 @@ public class SwaggerScanner {
         return this;
     }
 
-    private SwaggerScanner addJaxRsType(Type type) {
+    public SwaggerScanner addJaxRsType(Type type) {
         Api api = type.getAnnotation(Api.class);
         final List<String> defaultTags = tags(api);
         final String typePath = prefixedPath(type.getAnnotation(javax.ws.rs.Path.class).value());
         log.debug("scan path {} in {}", typePath, type);
 
-        type.accept(new TypeScanner() {
+        type.accept(new TypeVisitor() {
             @Override
             public void visit(Method method) {
                 new MethodScanner(method, swagger, typePath, defaultTags).scan();

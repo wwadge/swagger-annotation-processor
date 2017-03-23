@@ -1,19 +1,15 @@
 package com.github.t1.swap;
 
-import static javax.lang.model.SourceVersion.*;
-import static javax.tools.StandardLocation.*;
-
-import java.io.*;
-
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.tools.FileObject;
-import javax.ws.rs.Path;
-
+import com.github.t1.exap.*;
+import com.github.t1.exap.reflection.Resource;
+import io.swagger.annotations.SwaggerDefinition;
 import org.slf4j.*;
 
-import com.github.t1.exap.*;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.ws.rs.Path;
+import java.io.*;
 
-import io.swagger.annotations.SwaggerDefinition;
+import static javax.lang.model.SourceVersion.*;
 
 @SupportedSourceVersion(RELEASE_8)
 @SupportedAnnotationClasses({ SwaggerDefinition.class, Path.class })
@@ -30,16 +26,16 @@ public class SwaggerAnnotationProcessor extends ExtendedAbstractProcessor {
         swagger.addJaxRsTypes(round.typesAnnotatedWith(Path.class));
 
         if (round.isLast() && swagger.isWorthWriting())
-            writeSwagger();
+            writeSwagger(round);
         return false;
     }
 
-    private void writeSwagger() throws IOException {
-        FileObject fileObject = filer().createResource(SOURCE_OUTPUT, "", "swagger.yaml");
-        log.debug("write {}", fileObject.getName());
-        try (Writer writer = fileObject.openWriter()) {
+    private void writeSwagger(Round round) throws IOException {
+        Resource resource = round.createResource("", "swagger.yaml");
+        log.debug("write {}", resource.getName());
+        try (Writer writer = resource.openWriter()) {
             new SwaggerWriter(writer).write(swagger.getResult());
         }
-        note("created " + fileObject.getName());
+        note("created " + resource.getName());
     }
 }
