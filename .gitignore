@@ -2,4 +2,5 @@ impl/target/
 test/target/
 .idea/
 swagger-annotation-processor.iml
+impl/impl.iml
 test/test.iml

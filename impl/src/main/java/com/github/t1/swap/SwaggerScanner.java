@@ -115,9 +115,9 @@ public class SwaggerScanner {
     private void scan(Tag[] tags) {
         for (Tag tag : tags)
             if (!tag.name().isEmpty())
-                swagger.tag(new io.swagger.models.Tag() //
-                                                        .name(tag.name()) //
-                                                        .description(tag.description()) //
+                swagger.tag(new io.swagger.models.Tag()
+                        .name(tag.name())
+                        .description(tag.description())
                 );
     }
 
@@ -141,6 +141,7 @@ public class SwaggerScanner {
     }
 
     public SwaggerScanner addJaxRsType(Type type) {
+        log.error("found javadoc in {}: {}", type.getSimpleName(), type.docComment());
         Api api = type.getAnnotation(Api.class);
         final List<String> defaultTags = tags(api);
         final String typePath = prefixedPath(type.getAnnotation(javax.ws.rs.Path.class).value());

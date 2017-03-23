@@ -97,15 +97,15 @@ public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
     @Test
     public void shouldScanExtensions() {
         @SwaggerDefinition(info = @Info(title = "ti", version = "v",
-                extensions = { //
+                extensions = {
                         @Extension(name = "n0",
-                                properties = { //
-                                        @ExtensionProperty(name = "n01", value = "v01"), //
-                                        @ExtensionProperty(name = "x-n02", value = "v02") }), //
+                                properties = {
+                                        @ExtensionProperty(name = "n01", value = "v01"),
+                                        @ExtensionProperty(name = "x-n02", value = "v02") }),
                         @Extension(name = "x-n1",
-                                properties = { //
-                                        @ExtensionProperty(name = "x-n11", value = "v11"), //
-                                        @ExtensionProperty(name = "n12", value = "x-v12") }) //
+                                properties = {
+                                        @ExtensionProperty(name = "x-n11", value = "v11"),
+                                        @ExtensionProperty(name = "n12", value = "x-v12") })
         }) )
         class Dummy {}
 
@@ -129,11 +129,11 @@ public class SwaggerDefinitionScannerTest extends AbstractSwaggerScannerTest {
 
     @Test
     public void shouldScanTags() {
-        @SwaggerDefinition(tags = { //
-                @Tag(name = "a", description = "aaa"), //
-                @Tag(name = "b", description = "bbb"), //
-                @Tag(name = "c"), //
-        } //
+        @SwaggerDefinition(tags = {
+                @Tag(name = "a", description = "aaa"),
+                @Tag(name = "b", description = "bbb"),
+                @Tag(name = "c"),
+        }
         )
         class Dummy {}
 

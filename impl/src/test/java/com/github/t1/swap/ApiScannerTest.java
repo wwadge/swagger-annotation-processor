@@ -1,10 +1,20 @@
 package com.github.t1.swap;
 
+import com.github.t1.exap.reflection.*;
+import io.swagger.annotations.*;
+import io.swagger.models.*;
 import io.swagger.models.Response;
+import io.swagger.models.parameters.*;
 import org.assertj.core.api.JUnitSoftAssertions;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import javax.ws.rs.*;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.*;
+import java.lang.annotation.*;
 import java.time.LocalDate;
 
 import static java.lang.annotation.ElementType.*;
@@ -85,15 +95,15 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
         class Dummy {
             @GET
             @Path("/{path-param}")
-            @ApiOperation( //
-                           value = "get-op", //
-                           notes = "get-notes", //
-                           tags = { "t0", "t1" } //
+            @ApiOperation(
+                           value = "get-op",
+                           notes = "get-notes",
+                           tags = { "t0", "t1" }
                            )
             @Deprecated
             @SuppressWarnings("unused")
-            public String getMethod( //
-                    @Context UriBuilder uriBuilder, //
+            public String getMethod(
+                    @Context UriBuilder uriBuilder,
                     @ApiParam(name = "b-param",
                               value = "b-desc",
                               defaultValue = "b-def",
@@ -101,7 +111,7 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
                               required = true,
                               access = "b-access",
                               allowMultiple = true,
-                              hidden = false) String bodyParam, //
+                              hidden = false) String bodyParam,
                     @ApiParam(name = "p-param",
                               value = "p-desc",
                               defaultValue = "p-def",
@@ -109,7 +119,7 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
                               required = true,
                               access = "p-access",
                               allowMultiple = true,
-                              hidden = false) @PathParam("path-param") String pathParam, //
+                              hidden = false) @PathParam("path-param") String pathParam,
                     @ApiParam(name = "h-param",
                               value = "h-desc",
                               defaultValue = "h-def",
@@ -117,7 +127,7 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
                               required = true,
                               access = "h-access",
                               allowMultiple = true,
-                              hidden = false) @HeaderParam("header-param") String headerParam, //
+                              hidden = false) @HeaderParam("header-param") String headerParam,
                     @ApiParam(name = "q-param",
                               value = "q-desc",
                               defaultValue = "q-def",
@@ -125,7 +135,7 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
                               required = true,
                               access = "q-access",
                               allowMultiple = true,
-                              hidden = false) @QueryParam("query-param") String queryParam //
+                              hidden = false) @QueryParam("query-param") String queryParam
             ) {
                 return null;
             }
@@ -145,27 +155,27 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
         softly.assertThat(get.getDescription()).isEqualTo("get-notes");
         softly.assertThat(get.getTags()).containsExactly("t0", "t1");
         softly.assertThat(get.getOperationId()).isEqualTo("getMethod");
-        softly.assertThat(get.getParameters()).containsExactly( //
-                new BodyParameter() //
-                                    .name("b-param") //
+        softly.assertThat(get.getParameters()).containsExactly(
+                new BodyParameter()
+                                    .name("b-param")
                                     .description("b-desc"),
                 // TODO .defaultValue("b-def")
                 // TODO .allowableValues("b-allowable")
-                // TODO .required(true) //
-                // TODO .access("b-access") //
-                // TODO .allowMultiple(true) //
-                // TODO .hidden(false) //
-                new PathParameter() //
-                                    .name("p-param") //
-                                    .description("p-desc") //
+                // TODO .required(true)
+                // TODO .access("b-access")
+                // TODO .allowMultiple(true)
+                // TODO .hidden(false)
+                new PathParameter()
+                                    .name("p-param")
+                                    .description("p-desc")
                 ,
-                new HeaderParameter() //
-                                      .name("h-param") //
-                                      .description("h-desc") //
+                new HeaderParameter()
+                                      .name("h-param")
+                                      .description("h-desc")
                 ,
-                new QueryParameter() //
-                                     .name("q-param") //
-                                     .description("q-desc") //
+                new QueryParameter()
+                                     .name("q-param")
+                                     .description("q-desc")
         );
         // TODO CookieParameter
         // TODO FormParameter
@@ -185,11 +195,11 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
             @GET
             @Path("/{path-param}")
             @SuppressWarnings("unused")
-            public String getMethod( //
-                    String bodyParam, //
-                    @PathParam("path-param") String pathParam, //
-                    @HeaderParam("header-param") String headerParam, //
-                    @QueryParam("query-param") String queryParam //
+            public String getMethod(
+                    String bodyParam,
+                    @PathParam("path-param") String pathParam,
+                    @HeaderParam("header-param") String headerParam,
+                    @QueryParam("query-param") String queryParam
             ) {
                 return null;
             }
@@ -199,11 +209,11 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
 
         Operation get = getGetOperation(path);
         softly.assertThat(get.getOperationId()).isEqualTo("getMethod");
-        softly.assertThat(get.getParameters()).containsExactly( //
-                new BodyParameter().name("body"), //
-                new PathParameter().name("path-param"), //
-                new HeaderParameter().name("header-param"), //
-                new QueryParameter().name("query-param") //
+        softly.assertThat(get.getParameters()).containsExactly(
+                new BodyParameter().name("body"),
+                new PathParameter().name("path-param"),
+                new HeaderParameter().name("header-param"),
+                new QueryParameter().name("query-param")
         );
         // TODO CookieParameter
         // TODO FormParameter
@@ -420,11 +430,11 @@ public class ApiScannerTest extends AbstractSwaggerScannerTest {
 
         Operation get = getGetOperation(swagger.getPath("/foo"));
         softly.assertThat(get.getResponses()).hasSize(1);
-        softly.assertThat(get.getResponses().get("400")).isEqualTo( //
-                new Response() //
-                               .description("error") //
+        softly.assertThat(get.getResponses().get("400")).isEqualTo(
+                new Response()
+                               .description("error")
                 // TODO ref
-                // TODO .header("X-Status", "error detail") //
+                // TODO .header("X-Status", "error detail")
                 // TODO response
                 // TODO responseContainer
         );

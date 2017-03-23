@@ -1,7 +1,13 @@
 package com.github.t1.swap;
 
+import com.github.t1.exap.reflection.*;
 import com.github.t1.exap.reflection.Parameter;
+import io.swagger.annotations.*;
+import io.swagger.models.*;
+import io.swagger.models.parameters.*;
+import org.slf4j.*;
 
+import javax.ws.rs.*;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Context;
 import java.util.List;
@@ -57,8 +63,8 @@ public class MethodScanner {
     }
 
     private Operation operation() {
-        Operation operation = new Operation() //
-                .operationId(method.getName()) //
+        Operation operation = new Operation()
+                .operationId(method.getName())
                 .deprecated(method.getAnnotation(Deprecated.class) != null);
         scanApiOperation(operation);
         scanResponses(operation);
@@ -84,8 +90,8 @@ public class MethodScanner {
         if (responses == null)
             return;
         for (ApiResponse response : responses.value())
-            operation.addResponse(Integer.toString(response.code()), new Response() //
-                    .description(response.message()) //
+            operation.addResponse(Integer.toString(response.code()), new Response()
+                    .description(response.message())
             );
     }
 
