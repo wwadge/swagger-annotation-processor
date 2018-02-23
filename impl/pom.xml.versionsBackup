@@ -3,9 +3,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.github.t1</groupId>
+        <groupId>com.github.wwadge</groupId>
         <artifactId>swagger-annotation-processor-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
     <artifactId>swagger-annotation-processor</artifactId>
@@ -51,9 +51,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.t1</groupId>
-            <artifactId>swagger-annotation-processor-interface</artifactId>
-            <version>1.0.0</version>
+            <groupId>com.github.wwadge</groupId>
+            <artifactId>extended-annotation-processor</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.swagger</groupId>
