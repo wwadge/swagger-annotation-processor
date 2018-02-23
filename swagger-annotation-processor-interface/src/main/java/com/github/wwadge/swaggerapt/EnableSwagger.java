@@ -13,7 +13,7 @@ public @interface EnableSwagger {
     EnableSwagger.Scheme scheme() default Scheme.APIS;
     String configFile() default "swagger-config.json";
     String specFile() default "swagger.yml";
-    String outputDir() default "src/generated/java";
+    String outputDir() default "";
     String lang() default "io.swagger.codegen.languages.SpringCodegen";
 
 

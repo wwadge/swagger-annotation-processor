@@ -12,16 +12,19 @@ public class SwaggerScanner {
 
 
     private Scheme scheme = Scheme.APIS;
+
     private String configFile;
     private String lang;
     private String specFile;
     private String outputDir;
-
+    private String clazz;
 
 
     // visible for testing
     public SwaggerScanner addSwaggerDefinition(Element swaggerDefinitionElement) {
         com.github.wwadge.swaggerapt.EnableSwagger swaggerDefinition = swaggerDefinitionElement.getAnnotation(com.github.wwadge.swaggerapt.EnableSwagger.class);
+
+        this.clazz = swaggerDefinitionElement.getSimpleName().toString();
         this.scheme = swaggerDefinition.scheme();
         this.outputDir = swaggerDefinition.outputDir();
         this.configFile = swaggerDefinition.configFile();
@@ -45,6 +48,23 @@ public class SwaggerScanner {
     public String getLang() {
         return lang;
     }
+
+    public String getClazz() {
+        return clazz;
+    }
+
+    public void setOutputDir(String outputDir) {
+        this.outputDir = outputDir;
+    }
+    public void setSpecFile(String specFile) {
+        this.specFile = specFile;
+    }
+
+
+    public void setConfigFile(String configFile) {
+        this.configFile = configFile;
+    }
+
 
 
 }

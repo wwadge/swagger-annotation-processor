@@ -15,6 +15,8 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.element.TypeElement;
+import javax.tools.JavaFileObject;
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -30,27 +32,46 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
         return Integer.MIN_VALUE;
     }
 
-    private final SwaggerScanner swagger = new SwaggerScanner();
-
-    public boolean process(Round round) throws IOException {
 
 
-        if (!round.typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).isEmpty()) {
-            swagger.addSwaggerDefinition(round.typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).stream().findFirst().get());
+    public boolean process(Round round)  {
 
 
+        round.typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).stream().forEach(e -> {
+            SwaggerScanner swagger = new SwaggerScanner();
+            swagger.addSwaggerDefinition( e);
             if (round.number() == 0) {
-                note("Serializing Swagger types");
-                writeSwagger(round);
+                try {
+                    JavaFileObject out = processingEnv.getFiler().createSourceFile("test", e);
+                    out.openWriter().close();
+                    String outputPath = new File(out.toUri()).getParent();
+                    swagger.setOutputDir(outputPath + File.separator+swagger.getOutputDir());
+
+
+                    File projectRoot = new File(outputPath).getParentFile().getParentFile().getParentFile().getParentFile();
+                    swagger.setSpecFile(new File(projectRoot, "src"+File.separator+"main"+File.separator+"resources"+File.separator+swagger.getSpecFile()).getAbsolutePath());
+                    swagger.setConfigFile(new File(projectRoot,"src"+File.separator+"main"+File.separator+"resources"+File.separator+ swagger.getConfigFile()).getAbsolutePath());
+                    out.delete();
+                    note("Serializing Swagger types to "+ swagger.getOutputDir()+" via " + swagger.getSpecFile() );
+                writeSwagger(swagger, round);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
 
             }
-        }
+        });
+//        if (!round.typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).isEmpty()) {
+//
+//            swagger.addSwaggerDefinition(round.typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).stream().findFirst().get());
+//
+//        }
         return false;
     }
 
-    private void writeSwagger(Round round) throws IOException {
+    private void writeSwagger(SwaggerScanner swagger, Round round) throws IOException {
         CodegenConfigurator configurator = CodegenConfigurator.fromFile(swagger.getConfigFile());
         configurator.setLang(swagger.getLang());
+        log.info(swagger.getSpecFile());
         configurator.setInputSpec(swagger.getSpecFile());
 
         configurator.setOutputDir(swagger.getOutputDir());
@@ -139,6 +160,12 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
 //    public void printElements(Writer writer, Element... elements) {
 //        processingEnv.getElementUtils().printElements(writer, elements);
 //    }
+
+    public static void main(String[] args){
+       new Round(null, null, null, 0).typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).stream().forEach(e -> {
+            SwaggerScanner swagger = new SwaggerScanner();
+        });
+    }
 }
 
 
