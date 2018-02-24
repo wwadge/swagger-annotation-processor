@@ -84,3 +84,4 @@ velocity.*
 *.jar
 **/target/
 **/*.jar
+*.class
