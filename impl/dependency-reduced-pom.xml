@@ -44,6 +44,58 @@
   </build>
   <dependencies>
     <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-codegen</artifactId>
+      <version>2.2.7-eft</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>swagger-parser</artifactId>
+          <groupId>io.swagger</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>swagger-compat-spec-parser</artifactId>
+          <groupId>io.swagger</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>swagger-core</artifactId>
+          <groupId>io.swagger</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jmustache</artifactId>
+          <groupId>com.samskivert</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commons-io</artifactId>
+          <groupId>commons-io</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-ext</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-simple</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commons-lang3</artifactId>
+          <groupId>org.apache.commons</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commons-cli</artifactId>
+          <groupId>commons-cli</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commonmark</artifactId>
+          <groupId>com.atlassian.commonmark</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>1.1.3</version>
@@ -52,6 +104,10 @@
         <exclusion>
           <artifactId>logback-core</artifactId>
           <groupId>ch.qos.logback</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
         </exclusion>
       </exclusions>
       <optional>true</optional>
