@@ -42,6 +42,7 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
                 try {
                     JavaFileObject out = processingEnv.getFiler().createSourceFile("test", e);
                     out.openWriter().close();
+                    out.delete();
                     String outputPath = new File(out.toUri()).getParent();
                     swagger.setOutputDir(outputPath + File.separator+swagger.getOutputDir());
 
@@ -49,16 +50,17 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
                     File projectRoot = new File(outputPath).getParentFile().getParentFile().getParentFile().getParentFile();
                     swagger.setSpecFile(new File(projectRoot, "src"+File.separator+"main"+File.separator+"resources"+File.separator+swagger.getSpecFile()).getAbsolutePath());
                     swagger.setConfigFile(new File(projectRoot,"src"+File.separator+"main"+File.separator+"resources"+File.separator+ swagger.getConfigFile()).getAbsolutePath());
-                    out.delete();
+
                     note("Serializing Swagger types to "+ swagger.getOutputDir()+" via " + swagger.getSpecFile() );
-                writeSwagger(swagger);
+                    writeSwagger(swagger);
+
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
 
             }
         });
-        return false;
+        return true;
     }
 
     private void writeSwagger(SwaggerScanner swagger)  {

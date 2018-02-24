@@ -82,3 +82,5 @@ devops/docker-with-java/cache/
 velocity.*
 **/src/querydsl
 *.jar
+**/target/
+**/*.jar
