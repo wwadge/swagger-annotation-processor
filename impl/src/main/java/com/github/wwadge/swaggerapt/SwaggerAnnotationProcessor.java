@@ -32,8 +32,6 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
         return Integer.MIN_VALUE;
     }
 
-
-
     public boolean process(Round round)  {
 
 
@@ -53,22 +51,17 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
                     swagger.setConfigFile(new File(projectRoot,"src"+File.separator+"main"+File.separator+"resources"+File.separator+ swagger.getConfigFile()).getAbsolutePath());
                     out.delete();
                     note("Serializing Swagger types to "+ swagger.getOutputDir()+" via " + swagger.getSpecFile() );
-                writeSwagger(swagger, round);
+                writeSwagger(swagger);
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
 
             }
         });
-//        if (!round.typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).isEmpty()) {
-//
-//            swagger.addSwaggerDefinition(round.typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).stream().findFirst().get());
-//
-//        }
         return false;
     }
 
-    private void writeSwagger(SwaggerScanner swagger, Round round) throws IOException {
+    private void writeSwagger(SwaggerScanner swagger)  {
         CodegenConfigurator configurator = CodegenConfigurator.fromFile(swagger.getConfigFile());
         configurator.setLang(swagger.getLang());
         log.info(swagger.getSpecFile());
@@ -137,34 +130,8 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
         messager().printMessage(ERROR, message);
     }
 
-//    public void warning(CharSequence message) {
-//        messager().printMessage(WARNING, message);
-//    }
-//
-//    public void mandatoryWarning(CharSequence message) {
-//        messager().printMessage(MANDATORY_WARNING, message);
-//    }
-
     public void note(CharSequence message) {
         messager().printMessage(NOTE, message);
-    }
-
-//    public void otherMessage(CharSequence message) {
-//        messager().printMessage(OTHER, message);
-//    }
-//
-//    public List<? extends Element> getAllMembers(TypeElement type) {
-//        return processingEnv.getElementUtils().getAllMembers(type);
-//    }
-//
-//    public void printElements(Writer writer, Element... elements) {
-//        processingEnv.getElementUtils().printElements(writer, elements);
-//    }
-
-    public static void main(String[] args){
-       new Round(null, null, null, 0).typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).stream().forEach(e -> {
-            SwaggerScanner swagger = new SwaggerScanner();
-        });
     }
 }
 

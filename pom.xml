@@ -11,6 +11,25 @@
     <description>Creates swagger classes in the compile phase, i.e. in your IDE, in Maven, etc.</description>
     <url>https://github.com/wwadge/swagger-annotation-processor</url>
 
+
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Wallace Wadge</name>
+            <email>wwadge@gmail.com</email>
+            <organization>Wallace Wadge</organization>
+            <organizationUrl>https://github.com/wwadge/swagger-annotation-processor</organizationUrl>
+        </developer>
+    </developers>
+
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -19,11 +38,26 @@
     <scm>
         <developerConnection>scm:git:https://github.com/wwadge/swagger-annotation-processor</developerConnection>
         <tag>HEAD</tag>
+        <url>https://github.com/wwadge/swagger-annotation-processor</url>
     </scm>
 
     <build>
         <finalName>${project.artifactId}</finalName>
+
         <plugins>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -47,13 +81,70 @@
                     </archive>
                 </configuration>
             </plugin>
-        </plugins>
+
+
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <additionalparam>-Xdoclint:none</additionalparam>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+
+
+
+
     </build>
 
     <modules>
         <module>impl</module>
         <module>swagger-annotation-processor-interface</module>
     </modules>
+
+<distributionManagement>
+<snapshotRepository>
+    <id>ossrh</id>
+    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+</snapshotRepository>
+</distributionManagement>
+
 
     <dependencies>
         <!-- provided scope -->
