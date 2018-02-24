@@ -27,7 +27,7 @@ How to use?
       "importMappings": {
         "MonetaryAmount": "org.javamoney.moneta.Money",
         "EntityId": "com.foo.common.entities.EntityId",
-        "QueryDslBinder": "com.akcegroup.common.util.QueryDslBinder",
+        "QueryDslBinder": "com.foo.common.util.QueryDslBinder",
         "YearMonth": "java.time.YearMonth",
         "InetAddress": "java.net.InetAddress",
         "CurrencyUnit": "javax.money.CurrencyUnit",
@@ -40,20 +40,20 @@ Gradle example that also configures for use with querydsl apt which means you ca
 swagger template. Every time gradle or Intellij tries to compile, it will generate the swagger files followed by running the Querydsl APT on the resultant files
 (obviously querydsl is completely optional here).
 
-
     apply plugin: 'java'
     apply plugin: 'idea'
-    
+
     
     configurations {
         swagger
         querydsl
+        testCompile.extendsFrom compile
     }
     
     sourceSets {
         swagger {
             java {
-                srcDirs = sourceSets.main.java.srcDirs // look into src/main/java to find the @EnableSwagger annotation
+                srcDirs = [sourceSets.main.java.srcDirs, swagger.java.outputDir] // look to find the @EnableSwagger annotation
             }
         }
         querydsl {
@@ -62,42 +62,81 @@ swagger template. Every time gradle or Intellij tries to compile, it will genera
             }
         }
     
-        main.java.srcDirs += querydsl.java.srcDirs
     
-        sourceSets.swagger.compileClasspath += project.configurations.compile  // "src/main/java"
+        main{
+            java {
+                srcDirs += [sourceSets.querydsl.java.srcDirs, sourceSets.swagger.java.outputDir]
+            }
+        }
+    
+        sourceSets.swagger.compileClasspath +=   project.configurations.compile
         sourceSets.querydsl.compileClasspath += project.configurations.compile  + sourceSets.swagger.compileClasspath
         sourceSets.main.compileClasspath += sourceSets.querydsl.compileClasspath + sourceSets.swagger.compileClasspath+ swagger.output + querydsl.output
+        sourceSets.test.compileClasspath += sourceSets.main.compileClasspath + sourceSets.querydsl.compileClasspath + sourceSets.swagger.compileClasspath+ swagger.output + querydsl.output
     }
+    
+    
+    
     
     
     compileSwaggerJava {
         options.annotationProcessorPath = configurations.swagger
+        options.compilerArgs +=  ["-proc:only"]
     }
     
     compileQuerydslJava {
         options.annotationProcessorPath = configurations.querydsl
+        options.compilerArgs +=  ["-proc:only"]
     }
     compileJava {
         options.annotationProcessorPath = null
     }
     
+    compileTestJava {
+        options.annotationProcessorPath = null
+    }
+    
+    //compileTestJava.dependsOn(compileJava)
     compileJava.dependsOn([swaggerClasses, querydslClasses])
     querydslClasses.mustRunAfter(swaggerClasses)
     
-    idea {
     
+    
+    idea {
         module {
             // Marks the already(!) added srcDir as "generated"
-            generatedSourceDirs += [file("$buildDir/java/swagger"), file("$buildDir/java/querydsl")]
+            generatedSourceDirs += [sourceSets.swagger.java.outputDir, sourceSets.querydsl.java.outputDir]
+            sourceDirs += [sourceSets.swagger.java.outputDir, sourceSets.querydsl.java.outputDir]
         }
+    }
+    
+    clean{
+        delete sourceSets.swagger.java.outputDir
+        delete sourceSets.querydsl.java.outputDir
+    
     }
     
     
     dependencies{
-        compile 'com.github.wwadge:swagger-annotation-processor-interface:1.0.0' // <-- contains @EnableSwagger
-        swagger 'com.github.wwadge:swagger-annotation-processor:1.0.0'
-        swagger 'io.swagger:swagger-codegen:2.2.7' // <---- replace with the swagger version of your choice here
+        // this little snippet gets the top level folder by asking git to avoid hard-coding paths
+        def getTopLevelCode = { ->
+            def stdout = new ByteArrayOutputStream()
+            exec {
+                commandLine 'git', 'rev-parse', '--show-toplevel'
+                standardOutput = stdout
+            }
+            return stdout.toString().trim()
+        }
+    
+    
+        apply from: "$getTopLevelCode/gradle-common/versions.gradle"
+    
+    
+        compile "com.github.wwadge:swagger-annotation-processor-interface:${swaggerAnnotationProcessor}"
+        swagger "com.github.wwadge:swagger-annotation-processor:${swaggerAnnotationProcessor}"
+        compileOnly "com.github.wwadge:swagger-annotation-processor:${swaggerAnnotationProcessor}"
+        compileOnly "io.swagger:swagger-codegen:${swaggerCodegenVersion}"
+        swagger "io.swagger:swagger-codegen:${swaggerCodegenVersion}"
         querydsl group: 'com.querydsl', name: 'querydsl-apt', version:'4.1.3'
         querydsl group: 'com.querydsl', name: 'querydsl-apt', version:'4.1.3', classifier: "general"
     }
-    
