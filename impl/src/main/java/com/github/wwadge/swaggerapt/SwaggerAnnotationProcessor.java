@@ -18,6 +18,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,6 +28,9 @@ import static javax.tools.Diagnostic.Kind.NOTE;
 
 @SupportedSourceVersion(RELEASE_8)
 public class SwaggerAnnotationProcessor extends AbstractProcessor {
+    private static final String CLASSPATH_PREFIX = "classpath:";
+    private static final String RESOURCES_PREFIX = "src" + File.separator + "main" + File.separator + "resources" + File.separator;
+
     @Override
     public int hashCode() {
         return Integer.MIN_VALUE;
@@ -40,21 +44,36 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
             swagger.addSwaggerDefinition( e);
             if (round.number() == 0) {
                 try {
-                    JavaFileObject out = processingEnv.getFiler().createSourceFile("test", e);
-                    out.openWriter().close();
+                    JavaFileObject out = processingEnv.getFiler().createSourceFile("package-info", e);
+                    out.openOutputStream().close();
                     out.delete();
+
                     String outputPath = new File(out.toUri()).getParent();
                     swagger.setOutputDir(outputPath + File.separator+swagger.getOutputDir());
 
 
                     File projectRoot = new File(outputPath).getParentFile().getParentFile().getParentFile().getParentFile();
-                    swagger.setSpecFile(new File(projectRoot, "src"+File.separator+"main"+File.separator+"resources"+File.separator+swagger.getSpecFile()).getAbsolutePath());
-                    swagger.setConfigFile(new File(projectRoot,"src"+File.separator+"main"+File.separator+"resources"+File.separator+ swagger.getConfigFile()).getAbsolutePath());
+
+                    if (swagger.getSpecFile().startsWith(CLASSPATH_PREFIX)) {
+                        log.info(swagger.getSpecFile().substring(CLASSPATH_PREFIX.length()));
+                        URL path = this.getClass().getResource(swagger.getSpecFile().substring(CLASSPATH_PREFIX.length()));
+                        if (path == null) {
+                            log.error("Unable to find YML file specified in @EnableSwagger. Trying without classpath prefix");
+                            swagger.setSpecFile(new File(projectRoot, RESOURCES_PREFIX+swagger.getSpecFile().substring(CLASSPATH_PREFIX.length())).getAbsolutePath());
+                        } else {
+                            swagger.setSpecFile(path.getPath());
+                        }
+                    } else {
+                        swagger.setSpecFile(new File(projectRoot, RESOURCES_PREFIX+swagger.getSpecFile()).getAbsolutePath());
+
+                    }
+                    swagger.setConfigFile(new File(projectRoot,RESOURCES_PREFIX+ swagger.getConfigFile()).getAbsolutePath());
 
                     note("Serializing Swagger types to "+ swagger.getOutputDir()+" via " + swagger.getSpecFile() );
                     writeSwagger(swagger);
 
                 } catch (IOException e1) {
+                    log.error("Error during generation", e1);
                     e1.printStackTrace();
                 }
 
