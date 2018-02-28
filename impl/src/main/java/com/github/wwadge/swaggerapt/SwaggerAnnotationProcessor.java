@@ -15,10 +15,13 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.element.TypeElement;
+import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,12 +59,23 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
 
                     if (swagger.getSpecFile().startsWith(CLASSPATH_PREFIX)) {
                         log.info(swagger.getSpecFile().substring(CLASSPATH_PREFIX.length()));
-                        URL path = this.getClass().getResource(swagger.getSpecFile().substring(CLASSPATH_PREFIX.length()));
+                        FileObject path = processingEnv.getFiler().getResource(StandardLocation.ANNOTATION_PROCESSOR_PATH, "", swagger.getSpecFile().substring(CLASSPATH_PREFIX.length()));
                         if (path == null) {
                             log.error("Unable to find YML file specified in @EnableSwagger. Trying without classpath prefix");
                             swagger.setSpecFile(new File(projectRoot, RESOURCES_PREFIX+swagger.getSpecFile().substring(CLASSPATH_PREFIX.length())).getAbsolutePath());
                         } else {
-                            swagger.setSpecFile(path.getPath());
+
+
+                            File tmp = File.createTempFile(swagger.getSpecFile().substring(CLASSPATH_PREFIX.length()), "");
+                            InputStream is = path.openInputStream();
+                            java.nio.file.Files.copy(
+                                    is,
+                                    tmp.toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING);
+
+                            is.close();
+                            swagger.setSpecFile(tmp.getAbsolutePath());
+                            log.info("--->" + swagger.getSpecFile());
                         }
                     } else {
                         swagger.setSpecFile(new File(projectRoot, RESOURCES_PREFIX+swagger.getSpecFile()).getAbsolutePath());
@@ -69,8 +83,9 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
                     }
                     swagger.setConfigFile(new File(projectRoot,RESOURCES_PREFIX+ swagger.getConfigFile()).getAbsolutePath());
 
-                    note("Serializing Swagger types to "+ swagger.getOutputDir()+" via " + swagger.getSpecFile() );
+                    note("Serializing Swagger types to "+ swagger.getOutputDir()+" via " + swagger.getSpecFile() +" [config: "+swagger.getConfigFile()+" ]");
                     writeSwagger(swagger);
+
 
                 } catch (IOException e1) {
                     log.error("Error during generation", e1);
