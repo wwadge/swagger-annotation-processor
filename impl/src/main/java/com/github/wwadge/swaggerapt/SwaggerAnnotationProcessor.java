@@ -32,7 +32,7 @@ import static javax.tools.Diagnostic.Kind.NOTE;
 @SupportedSourceVersion(RELEASE_8)
 public class SwaggerAnnotationProcessor extends AbstractProcessor {
     private static final String CLASSPATH_PREFIX = "classpath:";
-    private static final String RESOURCES_PREFIX = "src" + File.separator + "main" + File.separator + "resources" + File.separator;
+    private static final String RESOURCES_PREFIX = ""; // src" + File.separator + "main" + File.separator + "resources" + File.separator;
 
     @Override
     public int hashCode() {
@@ -45,7 +45,7 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
         round.typesAnnotatedWith(com.github.wwadge.swaggerapt.EnableSwagger.class).stream().forEach(e -> {
             SwaggerScanner swagger = new SwaggerScanner();
             swagger.addSwaggerDefinition( e);
-            if (round.number() == 0) {
+            if (!round.isLast()) {
                 try {
                     JavaFileObject out = processingEnv.getFiler().createSourceFile("package-info", e);
                     out.openOutputStream().close();
@@ -91,10 +91,9 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
                     log.error("Error during generation", e1);
                     e1.printStackTrace();
                 }
-
             }
         });
-        return true;
+            return false;
     }
 
     private void writeSwagger(SwaggerScanner swagger)  {
