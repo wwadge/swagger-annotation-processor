@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.github.wwadge</groupId>
         <artifactId>swagger-annotation-processor-parent</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
         <relativePath>..</relativePath>
     </parent>
     <artifactId>swagger-annotation-processor</artifactId>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>com.github.wwadge</groupId>
             <artifactId>swagger-annotation-processor-interface</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
         </dependency>
         <dependency>
             <groupId>io.swagger</groupId>

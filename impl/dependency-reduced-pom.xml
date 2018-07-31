@@ -3,7 +3,7 @@
   <parent>
     <artifactId>swagger-annotation-processor-parent</artifactId>
     <groupId>com.github.wwadge</groupId>
-    <version>1.0.1</version>
+    <version>1.0.3</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>swagger-annotation-processor</artifactId>

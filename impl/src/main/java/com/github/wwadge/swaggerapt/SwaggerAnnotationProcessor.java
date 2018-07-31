@@ -7,6 +7,7 @@ import io.swagger.codegen.ClientOptInput;
 import io.swagger.codegen.CodegenConfig;
 import io.swagger.codegen.DefaultGenerator;
 import io.swagger.codegen.config.CodegenConfigurator;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
             swagger.addSwaggerDefinition( e);
             if (!round.isLast()) {
                 try {
-                    JavaFileObject out = processingEnv.getFiler().createSourceFile("package-info", e);
+                    JavaFileObject out = processingEnv.getFiler().createSourceFile("packageinfo"+ RandomStringUtils.randomAlphabetic(10), e);
                     out.openOutputStream().close();
                     out.delete();
 
@@ -81,6 +82,8 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
                         swagger.setSpecFile(new File(projectRoot, RESOURCES_PREFIX+swagger.getSpecFile()).getAbsolutePath());
 
                     }
+
+
                     swagger.setConfigFile(new File(projectRoot,RESOURCES_PREFIX+ swagger.getConfigFile()).getAbsolutePath());
 
                     note("Serializing Swagger types to "+ swagger.getOutputDir()+" via " + swagger.getSpecFile() +" [config: "+swagger.getConfigFile()+" ]");
@@ -105,6 +108,8 @@ public class SwaggerAnnotationProcessor extends AbstractProcessor {
         configurator.setOutputDir(swagger.getOutputDir());
         final ClientOptInput input = configurator.toClientOptInput();
         final CodegenConfig config = input.getConfig();
+//        System.clearProperty("models");
+//        System.clearProperty("apis");
         System.setProperty(swagger.getScheme().name().toLowerCase(), "");
 
         Map<?, ?> configOptions= Maps.newHashMap();
