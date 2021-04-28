@@ -4,7 +4,7 @@
 
     <groupId>com.github.wwadge</groupId>
     <artifactId>swagger-annotation-processor-parent</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <packaging>pom</packaging>
 
     <name>swap - Swagger Annotation Processor</name>
@@ -73,8 +73,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>11</source>
+                    <target>11</target>
                     <verbose>true</verbose>
                 </configuration>
 

@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.github.wwadge</groupId>
         <artifactId>swagger-annotation-processor-parent</artifactId>
-        <version>1.0.4</version>
+        <version>1.0.5</version>
         <relativePath>..</relativePath>
     </parent>
     <artifactId>swagger-annotation-processor</artifactId>
@@ -23,7 +23,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.4</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

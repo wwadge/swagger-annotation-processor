@@ -3,7 +3,7 @@
   <parent>
     <artifactId>swagger-annotation-processor-parent</artifactId>
     <groupId>com.github.wwadge</groupId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>swagger-annotation-processor</artifactId>
@@ -17,7 +17,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.2.0</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -126,4 +126,3 @@
     </dependency>
   </dependencies>
 </project>
-
